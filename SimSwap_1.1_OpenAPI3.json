@@ -1,0 +1,885 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sim Swap",
+    "description": "SIM Swap enables you to verify that a SIM card has not recently been swapped. This indicates the SIM card is still in the possession of the genuine customer, rather than under the potential control of a fraudster.",
+    "contact": {
+      "name": "Vodafone Developer Marketplace",
+      "url": "https://developer.vodafone.com/landing-page"
+    },
+    "version": "1.1.1"
+  },
+  "servers": [
+    {
+      "url": "https://api-sandbox.vf-dmp.engineering.vodafone.com",
+      "description": "Sandbox",
+      "variables": {}
+    },
+    {
+      "url": "https://api.vf-dmp.engineering.vodafone.com",
+      "description": "Production",
+      "variables": {}
+    }
+  ],
+  "paths": {
+    "/mobileconnect/premiuminfo/v1": {
+      "get": {
+        "tags": [
+          "PremiumInfo"
+        ],
+        "summary": "getPremiumInfo",
+        "description": "The premiuminfo endpoint is a protected resource that returns claims about the authenticated end-user.\n\nThis resource is used by a Service Provider to initiate an OpenID/Mobile Connect authorization.\n\nBearer Authentication is required to perform the request: an Authorization header with the access_token retrieved with the token API request. For example:\n\n**Authorization: Bearer alEw85xBVY83owVraNwNxzsfmpXu**\n\n**Sample MSISDNs:** 447772000001, 447772000002, 447772000004, 447772000006",
+        "operationId": "getPremiumInfo",
+        "parameters": [
+          {
+            "name": "vf-trace-transaction-id",
+            "in": "header",
+            "description": "A unique identifier for each request (typically a GUID).  This is not defined as part of the standard, but it can be used by the Service Provider to set a value which could assist in troubleshooting.  Note - if this header is not set in the request, Vodafone generates this value upon receipt of the message and returns the value in the response as a header.",
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "VF_EXT_BP_ID",
+            "in": "header",
+            "description": "The \"VF_EXT_BP_ID\" header holds the Client Origin Id. This is a means for identifying the originating customer. It can be used to define a specific pricing model. The value of Client Origin Id can be up to 12 characters in length, and it can contain a combination of A-Z, a-z, underscore and hyphen characters as permitted values. (No other special characters/white space is permitted). The value of the Client Origin ID will be assigned by Vodafone and communicated to the appropriate customer team.",
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "User-ID-Type",
+            "in": "header",
+            "description": "User identification type, it is support MSISDN type only. MSISDN Indicates the User-ID contains a plain MSISDN in international format according to ITU-T recommendation E.164 [13].",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string",
+              "example": "MSISDN"
+            }
+          },
+          {
+            "name": "User-ID",
+            "in": "header",
+            "description": "User identification value should contains a plain MSISDN in international format according to ITU-T recommendation E.164 [13]. The plus sign (+) MUST NOT be included as a prefix",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 447772000001
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "**OK**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/mc_response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "**Bad request**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "access_denied",
+                        "error_description": "Unknown user."
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Unknown user": {
+                    "value": {
+                      "error": "access_denied",
+                      "error_description": "Unknown user."
+                    }
+                  },
+                  "invalid msisdn": {
+                    "value": {
+                      "error": "invalid_request",
+                      "error_description": "Invalid User-ID value: invalid format"
+                    }
+                  },
+                  "invalid request": {
+                    "value": {
+                      "error": "invalid_request",
+                      "error_description": "User-ID / User-ID-Type header is not used and the Access Token is not tied to an End-User"
+                    }
+                  },
+                  "not whitelisted country": {
+                    "value": {
+                      "error": "invalid_request",
+                      "error_description": "Service is not whitelisted for this country"
+                    }
+                  },
+                  "invalid_scope": {
+                    "value": {
+                      "error": "invalid_scope",
+                      "error_description": "The scope is valid but not associated with this API"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "**Unauthorized**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "invalid_client",
+                        "error_description": "Invalid Access Token"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "invalid_client": {
+                    "value": {
+                      "error": "invalid_client",
+                      "error_description": "Invalid Access Token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "**Not Found**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Resource Not Found",
+                        "error_description": "URI does not represent a recognised resource"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Resource Not Found": {
+                    "value": {
+                      "error": "Resource Not Found",
+                      "error_description": "URI does not represent a recognised resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "**Method Not Allowed**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Method Not Allowed",
+                        "error_description": "The request method is not supported by this  resource"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Method Not Allowed": {
+                    "value": {
+                      "error": "Method Not Allowed",
+                      "error_description": "The request method is not supported by this  resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "**Not Acceptable**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Not Acceptable",
+                        "error_description": "The Accept header is invalid "
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Not Acceptable": {
+                    "value": {
+                      "error": "Not Acceptable",
+                      "error_description": "The Accept header is invalid "
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "**Payload Too Large**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Payload Too Large",
+                        "error_description": "The  response payload exceeds a maximum size."
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Payload Too Large": {
+                    "value": {
+                      "error": "Payload Too Large",
+                      "error_description": "The  response payload exceeds a maximum size."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "414": {
+            "description": "**Request URI Too Long**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Request URI Too Long",
+                        "error_description": "Request-URI is too long"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Request URI Too Long": {
+                    "value": {
+                      "error": "Request URI Too Long",
+                      "error_description": "Request-URI is too long"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "**Unsupported Media Type**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "invalid_request",
+                        "error_description": "The value of the Content-Type header is invalid"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Unsupported Media Type": {
+                    "value": {
+                      "error": "invalid_request",
+                      "error_description": "The value of the Content-Type header is invalid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "**Unprocessable Entity**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Unprocessable Entity",
+                        "error_description": "The request was well-formed but was unable to be followed due to semantic errors"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Unprocessable Entity": {
+                    "value": {
+                      "error": "Unprocessable Entity",
+                      "error_description": "The request was well-formed but was unable to be followed due to semantic errors"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "**Too Many Requests**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Too Many Requests",
+                        "error_description": "Api Quota limit reached "
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Api Quota limit reached": {
+                    "value": {
+                      "error": "Too Many Requests",
+                      "error_description": "Api Quota limit reached "
+                    }
+                  },
+                  "OpCo Quota limit reached": {
+                    "value": {
+                      "error": "Too Many Requests",
+                      "error_description": "OpCo Quota limit reached"
+                    }
+                  },
+                  "End-User limit based on $1 has been reached": {
+                    "value": {
+                      "error": "Too Many Requests",
+                      "error_description": "End-User limit based on $1 has been reached"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "431": {
+            "description": "**Request Header Fields Too Large**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "Request Header Fields Too Large",
+                        "error_description": "The server is unwilling to process the request because either an individual header field, or all the header fields collectively, are too large"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Request Header Fields Too Large": {
+                    "value": {
+                      "error": "Request Header Fields Too Large",
+                      "error_description": "The server is unwilling to process the request because either an individual header field, or all the header fields collectively, are too large"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "**Internal Server Error**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1Response"
+                    },
+                    {
+                      "example": {
+                        "error": "server_error",
+                        "error_description": "Internal Server Error."
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Internal Server Error": {
+                    "value": {
+                      "error": "server_error",
+                      "error_description": "Internal Server Error."
+                    }
+                  },
+                  "Service unavailable": {
+                    "value": {
+                      "error": "server_error",
+                      "error_description": "The service is currently not available. Please try again later."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false,
+        "security": [
+          {
+            "oAuth2ClientCredentials": []
+          }
+        ]
+      }
+    },
+    "/mobileconnect/premiuminfo/v1/ping": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "getPing",
+        "description": "This API is to check the upstream system is up and running.",
+        "operationId": "getPing",
+        "parameters": [
+          {
+            "name": "vf-trace-transaction-id",
+            "in": "header",
+            "description": "A unique identifier for each request (typically a GUID).  This is not defined as part of the standard, but it can be used by the Service Provider to set a value which could assist in troubleshooting.  Note - if this header is not set in the request, Vodafone generates this value upon receipt of the message and returns the value in the response as a header.",
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "**OK**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1PingResponse"
+                    },
+                    {
+                      "example": {
+                        "suffix": "/ping",
+                        "client": "35.191.13.203",
+                        "startTime": "2023-06-05T19:47:16.794Z",
+                        "endTime": "2023-06-05T19:47:16.888Z",
+                        "responseTime": 94,
+                        "message": "PONG"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "success_response": {
+                    "value": {
+                      "suffix": "/ping",
+                      "client": "35.191.13.203",
+                      "startTime": "2023-06-05T19:47:16.794Z",
+                      "endTime": "2023-06-05T19:47:16.888Z",
+                      "responseTime": 94,
+                      "message": "PONG"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "**Bad request**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1PingResponse1"
+                    },
+                    {
+                      "example": {
+                        "error": "invalid_request",
+                        "error_description": "The request parameter is invalid"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Unknown user": {
+                    "value": {
+                      "error": "invalid_request",
+                      "error_description": "The request parameter is invalid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "**Unauthorized**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1PingResponse1"
+                    },
+                    {
+                      "example": {
+                        "error": "invalid_client",
+                        "error_description": "Invalid Access Token"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "invalid_client": {
+                    "value": {
+                      "error": "invalid_client",
+                      "error_description": "Invalid Access Token"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false,
+        "security": [
+          {
+            "oAuth2ClientCredentials": []
+          }
+        ]
+      }
+    },
+    "/mobileconnect/premiuminfo/v1/status": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "getStatus",
+        "description": "This API is to check the downstream system is up and running.",
+        "operationId": "getStatus",
+        "parameters": [
+          {
+            "name": "vf-trace-transaction-id",
+            "in": "header",
+            "description": "A unique identifier for each request (typically a GUID).  This is not defined as part of the standard, but it can be used by the Service Provider to set a value which could assist in troubleshooting.  Note - if this header is not set in the request, Vodafone generates this value upon receipt of the message and returns the value in the response as a header.",
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "**OK**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1StatusResponse"
+                    },
+                    {
+                      "example": {
+                        "status": "OK"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "success_response": {
+                    "value": {
+                      "status": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "**Bad request**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1StatusResponse1"
+                    },
+                    {
+                      "example": {
+                        "error": "invalid_request",
+                        "error_description": "The request parameter is invalid"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "Unknown user": {
+                    "value": {
+                      "error": "invalid_request",
+                      "error_description": "The request parameter is invalid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "**Unauthorized**",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MobileconnectPremiuminfoV1StatusResponse1"
+                    },
+                    {
+                      "example": {
+                        "error": "invalid_client",
+                        "error_description": "Invalid Access Token"
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "invalid_client": {
+                    "value": {
+                      "error": "invalid_client",
+                      "error_description": "Invalid Access Token"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false,
+        "security": [
+          {
+            "oAuth2ClientCredentials": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "mc_response": {
+        "title": "mc_response",
+        "required": [
+          "sim_change"
+        ],
+        "type": "object",
+        "properties": {
+          "sim_change": {
+            "type": "string",
+            "description": "Timestamp of last MSISDN <-> IMSI pairing change [RFC 3339 absolute timestamp format.",
+            "example": "2019-10-02T18:50Z"
+          }
+        }
+      },
+      "MobileconnectPremiuminfoV1PingResponse": {
+        "title": "MobileconnectPremiuminfoV1PingResponse",
+        "required": [
+          "suffix",
+          "client",
+          "startTime",
+          "endTime",
+          "responseTime",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "suffix": {
+            "type": "string"
+          },
+          "client": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "responseTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "suffix": "/ping",
+          "client": "35.191.13.203",
+          "startTime": "2023-06-05T19:47:16.794Z",
+          "endTime": "2023-06-05T19:47:16.888Z",
+          "responseTime": 94,
+          "message": "PONG"
+        }
+      },
+      "MobileconnectPremiuminfoV1Response": {
+        "title": "MobileconnectPremiuminfoV1Response",
+        "required": [
+          "error",
+          "error_description"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "error": "access_denied",
+          "error_description": "Unknown user."
+        }
+      },
+      "MobileconnectPremiuminfoV1StatusResponse": {
+        "title": "MobileconnectPremiuminfoV1StatusResponse",
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "status": "OK"
+        }
+      },
+      "MobileconnectPremiuminfoV1PingResponse1": {
+        "title": "MobileconnectPremiuminfoV1PingResponse1",
+        "required": [
+          "error",
+          "error_description"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "error": "invalid_request",
+          "error_description": "The request parameter is invalid"
+        }
+      },
+      "MobileconnectPremiuminfoV1StatusResponse1": {
+        "title": "MobileconnectPremiuminfoV1StatusResponse1",
+        "required": [
+          "error",
+          "error_description"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "error": "invalid_request",
+          "error_description": "The request parameter is invalid"
+        }
+      }
+    },
+    "securitySchemes": {
+      "oAuth2ClientCredentials": {
+        "type": "oauth2",
+        "description": "Oath2 grant type clientCredentials",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://api-sandbox.vf-dmp.engineering.vodafone.com/mobileconnect/v1/token",
+            "scopes": {
+              "mc_vf_sim_change": "Scope for Sim Swap"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [],
+  "tags": [
+    {
+      "name": "PremiumInfo",
+      "description": ""
+    },
+    {
+      "name": "Monitoring",
+      "description": ""
+    }
+  ]
+}
